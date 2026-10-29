@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community-QBR</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.4rem; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  input, select { padding: 8px; font-size: 1rem; }
+  .wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 8px; border-bottom: 1px solid #8884; text-align: left; white-space: nowrap; }
+  th { cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>🏈 Community-QBR</h1>
+<div class="controls">
+  <input id="q" placeholder="QB suchen">
+  <select id="season"></select>
+  <select id="week"><option value="">Alle Wochen</option></select>
+</div>
+<div class="wrap"><table>
+  <thead><tr>
+    <th data-k="week">Woche</th><th data-k="qb_name">QB</th><th data-k="posteam">Team</th>
+    <th data-k="plays">Plays</th><th data-k="score">Score</th><th data-k="grade">Note</th>
+  </tr></thead>
+  <tbody id="body"></tbody>
+</table></div>
+<script>
+let data = [], sortKey = "score", asc = false;
+const $ = id => document.getElementById(id);
+function render() {
+  const q = $("q").value.toLowerCase(), s = $("season").value, w = $("week").value;
+  const rows = data.filter(r => String(r.season) === s && (!w || String(r.week) === w)
+      && (r.qb_name || "").toLowerCase().includes(q))
+    .sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : -1) * (asc ? 1 : -1));
+  $("body").innerHTML = rows.map(r => `<tr><td>${r.week}</td><td>${r.qb_name}</td><td>${r.posteam}</td><td>${r.plays}</td><td>${r.score}</td><td>${r.grade}</td></tr>`).join("");
+}
+fetch("data.json").then(r => r.json()).then(d => {
+  data = d;
+  const seasons = [...new Set(d.map(r => r.season))].sort((a, b) => b - a);
+  $("season").innerHTML = seasons.map(x => `<option>${x}</option>`).join("");
+  const weeks = [...new Set(d.map(r => r.week))].sort((a, b) => a - b);
+  $("week").innerHTML += weeks.map(x => `<option>${x}</option>`).join("");
+  render();
+});
+["q", "season", "week"].forEach(id => $(id).addEventListener("input", render));
+document.querySelectorAll("th").forEach(th => th.addEventListener("click", () => {
+  const k = th.dataset.k; asc = (k === sortKey) ? !asc : false; sortKey = k; render();
+}));
+</script>
+</body>
+</html>
