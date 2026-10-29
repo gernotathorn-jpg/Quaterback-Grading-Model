@@ -5,7 +5,10 @@ import pandas as pd
 import nflreadpy as nfl
 
 # ---------- Konfiguration ----------
-SEASONS = [2022, 2023, 2024, 2025]
+import datetime
+_today = datetime.date.today()
+CURRENT = _today.year if _today.month >= 9 else _today.year - 1
+SEASONS = list(range(2022, CURRENT + 1))  # inkl. laufender Saison
 START = 375
 CLUTCH_WP = 0.40      # Clutch-x2 unter dieser Win Probability (nflfastR wp)
 BIGPLAY_WPA = 0.05    # Big-Play-Bonus ab diesem wpa
