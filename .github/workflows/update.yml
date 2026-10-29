@@ -1,0 +1,24 @@
+name: Update QBR data
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 2"
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python community_qbr.py
+      - name: Commit data
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add docs/data.json
+          git commit -m "Update data" || echo "no changes"
+          git push
