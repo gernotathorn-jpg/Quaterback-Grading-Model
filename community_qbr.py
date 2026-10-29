@@ -36,7 +36,15 @@ def yard_pts(y):
 
 def load():
     pbp = nfl.load_pbp(SEASONS).to_pandas()
-    ftn = nfl.load_ftn_charting(SEASONS).to_pandas()
+    print("PBP-Saisons:", sorted(pbp.season.unique()))
+    # FTN-Charting erscheint fuer die laufende Saison oft verzoegert -> pro Saison laden
+    parts = []
+    for s in SEASONS:
+        try:
+            parts.append(nfl.load_ftn_charting([s]).to_pandas())
+        except Exception as e:
+            print(f"FTN {s} nicht verfuegbar ({e}), ohne FTN-Werte weiter")
+    ftn = pd.concat(parts, ignore_index=True)
     ftn = ftn[["nflverse_game_id", "nflverse_play_id",
                "is_qb_out_of_pocket", "is_catchable_ball"]]
     return pbp.merge(ftn, how="left",

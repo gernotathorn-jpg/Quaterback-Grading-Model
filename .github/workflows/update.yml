@@ -3,13 +3,24 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * 2"
+  push:
+    branches: [main]
+    paths:
+      - community_qbr.py
+      - requirements.txt
+      - .github/workflows/update.yml
 permissions:
   contents: write
+concurrency:
+  group: update-qbr-data
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -20,5 +31,6 @@ jobs:
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add docs/data.json
-          git commit -m "Update data" || echo "no changes"
-          git push
+          git commit -m "Update data" || { echo "no changes"; exit 0; }
+          git pull --rebase origin main
+          git push origin HEAD:main
